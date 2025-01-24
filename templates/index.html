@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Film Ontology Query Interface</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Film Ontology Query Interface</h1>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('query') }}">
+        <div class="form-group">
+            <label for="query_select">Select a predefined query:</label>
+            <select name="query_select" id="query_select" onchange="updateQueryText()">
+                <option value="query1">Christopher Nolan's Films (Chronological)</option>
+                <option value="query2">Leonardo DiCaprio's Films</option>
+                <option value="query3">Action Genre Films</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="custom_query">Or write your own SPARQL query:</label>
+            <textarea name="custom_query" id="custom_query" rows="10"></textarea>
+        </div>
+
+        <button type="submit">Execute Query</button>
+    </form>
+</div>
+
+<script>
+    const queries = {
+        'query1': `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX film: <http://www.semanticweb.org/film-ontology#>
+
+SELECT ?filmTitle ?year
+WHERE {
+    ?film film:hasDirector film:ChristopherNolan ;
+          film:title ?filmTitle ;
+          film:releaseYear ?year .
+}
+ORDER BY ?year`,
+        'query2': `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX film: <http://www.semanticweb.org/film-ontology#>
+
+SELECT ?actorName ?filmTitle
+WHERE {
+    ?film film:hasActor ?actor ;
+          film:title ?filmTitle .
+    ?actor film:name ?actorName .
+    FILTER(?actorName = "Leonardo DiCaprio")
+}`,
+        'query3': `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX film: <http://www.semanticweb.org/film-ontology#>
+
+SELECT ?filmTitle ?genreName
+WHERE {
+    ?film film:hasGenre ?genre ;
+          film:title ?filmTitle .
+    ?genre film:name ?genreName .
+    FILTER(?genreName = "Action")
+}`
+    };
+
+    window.onload = function() {
+        updateQueryText();
+    }
+
+    function updateQueryText() {
+        const select = document.getElementById('query_select');
+        const textarea = document.getElementById('custom_query');
+        textarea.value = queries[select.value];
+    }
+</script>
+</body>
+</html>
